@@ -105,7 +105,7 @@ export const config: GeneratorConfig = {
         label: 'Ocean',
         default: {
           heightRange: [-1.0, 0.4],
-          symbols: ['~', '='],
+          symbols: ['~', '≈'],  // Wavy water
           colors: [
             [0, 51, 102],   // Deep ocean blue
             [0, 102, 204],  // Mid ocean blue
@@ -118,7 +118,7 @@ export const config: GeneratorConfig = {
         label: 'Plains',
         default: {
           heightRange: [0.4, 0.6],
-          symbols: ['.', ','],  // Simple dots for grass
+          symbols: ['*', '"'],  // Small vegetation
           colors: [
             [80, 200, 80],   // Lower plains
             [100, 220, 100]  // Higher plains
@@ -130,7 +130,7 @@ export const config: GeneratorConfig = {
         label: 'Hills',
         default: {
           heightRange: [0.6, 0.7],
-          symbols: ['^', 'v'],  // Simple triangles for hills
+          symbols: ['n', 'h'],  // Small hills
           colors: [
             [24, 129, 24],  // Lower hills
             [34, 139, 34],  // Mid hills
@@ -143,7 +143,7 @@ export const config: GeneratorConfig = {
         label: 'Mountains',
         default: {
           heightRange: [0.7, 1.0],
-          symbols: ['A', 'M'],  // Mountain-like letters
+          symbols: ['W', 'M'],  // Sharp peaks
           colors: [
             [100, 100, 100],  // Lower mountains
             [120, 120, 120],  // Mid mountains
