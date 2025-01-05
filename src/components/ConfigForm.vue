@@ -93,18 +93,23 @@ const configGroups = computed(() => Object.values(props.generator.config));
 
 function updateField(groupId: string, fieldId: string, event: Event) {
   const target = event.target as HTMLInputElement;
-  const value = target.type === 'checkbox' ? target.checked :
-                target.type === 'number' ? Number(target.value) :
-                target.value;
+  const field = props.generator.config[groupId].fields[fieldId];
+  
+  // Ensure proper type conversion
+  let value: string | number = target.value;
+  if (field.type === 'number') {
+    value = Number(target.value);
+  }
 
-  const newConfig = {
-    ...props.config,
-    [groupId]: {
-      ...props.config[groupId],
-      [fieldId]: value
-    }
-  };
+  // Create nested structure if it doesn't exist
+  if (!props.config[groupId]) {
+    props.config[groupId] = {};
+  }
 
-  emit('change', newConfig);
+  // Update the value
+  props.config[groupId][fieldId] = value;
+  
+  // Emit the change
+  emit('change', props.config);
 }
 </script>

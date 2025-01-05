@@ -35,6 +35,8 @@ export class TerrainGenerator implements Generator {
 
     // Generate height map
     console.log('Generating height map with params:', {
+      width: this.map.width,
+      height: this.map.height,
       scale: config.generation.scale,
       octaves: config.generation.octaves,
       persistence: config.generation.persistence,
