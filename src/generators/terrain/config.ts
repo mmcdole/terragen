@@ -61,14 +61,14 @@ export const config: GeneratorConfig = {
         label: 'Persistence',
         default: 0.5,
         min: 0.1,
-        max: 0.9,
+        max: 1.0,
         step: 0.1
       },
       lacunarity: {
         type: 'number',
         label: 'Lacunarity',
         default: 2.0,
-        min: 1.5,
+        min: 1.1,
         max: 3.0,
         step: 0.1
       }
@@ -82,17 +82,75 @@ export const config: GeneratorConfig = {
         type: 'number',
         label: 'Water Level',
         default: 0.4,
-        min: -0.5,
-        max: 0.5,
-        step: 0.1
+        min: 0.2,
+        max: 0.6,
+        step: 0.05
       },
       mountainLevel: {
         type: 'number',
         label: 'Mountain Level',
         default: 0.7,
-        min: 0.2,
-        max: 0.8,
-        step: 0.1
+        min: 0.5,
+        max: 0.9,
+        step: 0.05
+      }
+    }
+  },
+  terrainTypes: {
+    id: 'terrainTypes',
+    label: 'Terrain Types',
+    fields: {
+      ocean: {
+        type: 'object',
+        label: 'Ocean',
+        default: {
+          heightRange: [-1.0, 0.4],
+          symbols: ['~', '='],
+          colors: [
+            [0, 51, 102],   // Deep ocean blue
+            [0, 102, 204],  // Mid ocean blue
+            [51, 153, 255]  // Shallow water blue
+          ]
+        }
+      },
+      plains: {
+        type: 'object',
+        label: 'Plains',
+        default: {
+          heightRange: [0.4, 0.6],
+          symbols: ['.', ','],  // Simple dots for grass
+          colors: [
+            [80, 200, 80],   // Lower plains
+            [100, 220, 100]  // Higher plains
+          ]
+        }
+      },
+      hills: {
+        type: 'object',
+        label: 'Hills',
+        default: {
+          heightRange: [0.6, 0.7],
+          symbols: ['^', 'v'],  // Simple triangles for hills
+          colors: [
+            [24, 129, 24],  // Lower hills
+            [34, 139, 34],  // Mid hills
+            [44, 149, 44]   // Higher hills
+          ]
+        }
+      },
+      mountains: {
+        type: 'object',
+        label: 'Mountains',
+        default: {
+          heightRange: [0.7, 1.0],
+          symbols: ['A', 'M'],  // Mountain-like letters
+          colors: [
+            [100, 100, 100],  // Lower mountains
+            [120, 120, 120],  // Mid mountains
+            [140, 140, 140],  // High mountains
+            [200, 200, 200]   // Peaks
+          ]
+        }
       }
     }
   },
@@ -135,7 +193,7 @@ export const config: GeneratorConfig = {
       plains: {
         type: 'text',
         label: 'Plains',
-        default: '·'
+        default: '.'
       },
       hills: {
         type: 'text',
@@ -145,7 +203,7 @@ export const config: GeneratorConfig = {
       mountains: {
         type: 'text',
         label: 'Mountains',
-        default: '▲'
+        default: 'A'
       },
       river: {
         type: 'text',

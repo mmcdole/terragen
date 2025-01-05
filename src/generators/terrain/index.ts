@@ -1,8 +1,8 @@
 import { Generator } from '../types';
-import { config as defaultConfig } from './config';
 import { NoiseGenerator } from './noise';
 import { FeatureGenerator } from './features';
-import { TerrainCell, TerrainMap } from './types';
+import { TerrainMap, TerrainType, TerrainCell, RGB, TerrainConfig } from './types';
+import { config as defaultConfig } from './config';
 
 export class TerrainGenerator implements Generator {
   readonly id = 'terrain-default';
@@ -25,99 +25,85 @@ export class TerrainGenerator implements Generator {
     this.featureGen = new FeatureGenerator(this.map);
   }
 
-  generate(config: Record<string, any>): string[][] {
-    console.log('TerrainGenerator.generate called with config:', JSON.stringify(config, null, 2));
+  private interpolateColor(color1: RGB, color2: RGB, factor: number): RGB {
+    return [
+      Math.round(color1[0] + (color2[0] - color1[0]) * factor),
+      Math.round(color1[1] + (color2[1] - color1[1]) * factor),
+      Math.round(color1[2] + (color2[2] - color1[2]) * factor)
+    ];
+  }
+
+  private getTerrainCell(height: number, config: TerrainConfig): TerrainCell {
+    const types = config.terrainTypes;
+    let terrainType: TerrainType;
     
+    // Determine terrain type based on height
+    if (height <= types.ocean.heightRange[1]) {
+      terrainType = types.ocean;
+    } else if (height <= types.plains.heightRange[1]) {
+      terrainType = types.plains;
+    } else if (height <= types.hills.heightRange[1]) {
+      terrainType = types.hills;
+    } else {
+      terrainType = types.mountains;
+    }
+
+    // Calculate where within this terrain type's range the height falls
+    const [min, max] = terrainType.heightRange;
+    const rangeFactor = (height - min) / (max - min);
+    
+    // Get color by interpolating between the closest colors
+    const colors = terrainType.colors;
+    const colorIndex = Math.min(
+      Math.floor(rangeFactor * (colors.length - 1)),
+      colors.length - 2
+    );
+    const colorFactor = (rangeFactor * (colors.length - 1)) - colorIndex;
+    const color = this.interpolateColor(
+      colors[colorIndex],
+      colors[colorIndex + 1],
+      colorFactor
+    );
+
+    // Randomly select a symbol
+    const symbol = terrainType.symbols[
+      Math.floor(Math.random() * terrainType.symbols.length)
+    ];
+
+    return { height, symbol, color };
+  }
+
+  generate(config: TerrainConfig): string[][] {
     // Update map dimensions
     this.map.width = config.dimensions.width;
     this.map.height = config.dimensions.height;
-    console.log(`Map dimensions set to ${this.map.width}x${this.map.height}`);
 
     // Generate height map
-    console.log('Generating height map with params:', {
-      width: this.map.width,
-      height: this.map.height,
-      scale: config.generation.scale,
-      octaves: config.generation.octaves,
-      persistence: config.generation.persistence,
-      lacunarity: config.generation.lacunarity,
-      seed: config.generation.seed
-    });
-    
     const heightMap = this.noiseGen.generateHeightMap(
       this.map.width,
       this.map.height,
-      {
-        scale: config.generation.scale,
-        octaves: config.generation.octaves,
-        persistence: config.generation.persistence,
-        lacunarity: config.generation.lacunarity
-      },
+      config.generation,
       config.generation.seed
     );
 
-    // Log height map statistics
-    const heights = heightMap.flat();
-    const minHeight = Math.min(...heights);
-    const maxHeight = Math.max(...heights);
-    console.log('Height map stats:', { minHeight, maxHeight });
-
-    // Create terrain cells
-    this.map.cells = heightMap.map(row => row.map(height => new TerrainCell(height)));
-
-    // Assign terrain types based on height thresholds
-    const waterLevel = config.terrain.waterLevel;
-    const mountainLevel = config.terrain.mountainLevel;
-    const plainsThreshold = waterLevel + (mountainLevel - waterLevel) * 0.4;
-    const hillsThreshold = waterLevel + (mountainLevel - waterLevel) * 0.8;
-
-    console.log('Terrain thresholds:', {
-      waterLevel,
-      plainsThreshold,
-      hillsThreshold,
-      mountainLevel
-    });
-
-    // Count terrain types for distribution analysis
-    const terrainCounts = {
-      ocean: 0,
-      plains: 0,
-      hills: 0,
-      mountains: 0
-    };
+    // Convert height map to colored terrain cells
+    const cells: string[][] = Array(this.map.height)
+      .fill(0)
+      .map(() => Array(this.map.width).fill(''));
 
     for (let y = 0; y < this.map.height; y++) {
       for (let x = 0; x < this.map.width; x++) {
-        const cell = this.map.cells[y][x];
-        const height = cell.height;
-
-        // Add slight local variation to thresholds for more natural boundaries
-        const localVariation = (Math.random() * 2 - 1) * 0.02;
-
-        if (height < waterLevel + localVariation) {
-          cell.terrainType = 'ocean';
-          cell.symbol = config.symbols.ocean;
-          terrainCounts.ocean++;
-        } else if (height < plainsThreshold + localVariation) {
-          cell.terrainType = 'plains';
-          cell.symbol = config.symbols.plains;
-          terrainCounts.plains++;
-        } else if (height < hillsThreshold + localVariation) {
-          cell.terrainType = 'hills';
-          cell.symbol = config.symbols.hills;
-          terrainCounts.hills++;
-        } else {
-          cell.terrainType = 'mountains';
-          cell.symbol = config.symbols.mountains;
-          terrainCounts.mountains++;
-        }
+        const height = heightMap[y][x];
+        const cell = this.getTerrainCell(height, config);
+        
+        // Format as HTML span with RGB color
+        const [r, g, b] = cell.color;
+        cells[y][x] = `<span style="color: rgb(${r}, ${g}, ${b})">${cell.symbol}</span>`;
       }
     }
 
-    console.log('Terrain distribution:', terrainCounts);
-
-    const result = this.map.cells.map(row => row.map(cell => cell.symbol));
-    return result;
+    this.map.cells = cells;
+    return cells;
   }
 }
 

@@ -2,8 +2,9 @@
   <div class="relative bg-gray-950 p-6">
     <pre
       class="block w-full overflow-auto text-gray-100 font-mono text-base leading-none whitespace-pre"
-      style="tab-size: 1; letter-spacing: 0;"
-    >{{ formattedMap }}</pre>
+      style="tab-size: 1; letter-spacing: 0.5ch;"
+      v-html="formattedMap"
+    ></pre>
   </div>
 </template>
 
@@ -15,12 +16,10 @@ const props = defineProps<{
 }>()
 
 const formattedMap = computed(() => {
-  console.log('MapPreview map:', props.map);
   if (!props.map || !props.map.length) {
     return 'Click "Generate Map" to create a new map'
   }
-  const result = props.map.map(row => row.join(' ')).join('\n')
-  console.log('MapPreview formatted:', result.slice(0, 100) + '...');
+  const result = props.map.map(row => row.join('')).join('\n')
   return result
 })
 
@@ -33,6 +32,13 @@ watch(() => props.map, (newMap) => {
 <style>
 pre {
   font-family: 'Fira Code', 'JetBrains Mono', 'Courier New', monospace;
+}
+
+pre span {
+  display: inline-block;
+  width: 1ch;
+  text-align: center;
+  margin: 0 0.25ch;
 }
 
 /* Custom scrollbar for the preview */
@@ -51,7 +57,7 @@ pre::-webkit-scrollbar-thumb {
   border: 3px solid rgba(31, 41, 55, 0.5);
 }
 
-pre::-webkit-scrollbar-corner {
-  background: rgba(31, 41, 55, 0.5);
+pre::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(107, 114, 128, 0.5);
 }
 </style>
